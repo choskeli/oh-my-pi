@@ -48,8 +48,25 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 				throw new Error("Devin API key is required");
 			}
 
-			const baseUrl = model.baseUrl || "https://api.devin.ai/v1";
+			const baseUrl = model.baseUrl || "https://api.devin.ai/v3";
 			const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+
+			// Find Org ID if targeting v3
+			let orgId = process.env.DEVIN_ORG_ID;
+			if (!orgId && normalizedBaseUrl.includes("/v3")) {
+				const selfRes = await fetch(`${normalizedBaseUrl}/self`, {
+					headers: { Authorization: `Bearer ${apiKey}` },
+					signal: options?.signal,
+				});
+				if (!selfRes.ok) {
+					throw new Error(`Devin API self lookup failed (${selfRes.status}): ${await selfRes.text()}`);
+				}
+				const selfData = await selfRes.json();
+				orgId = selfData?.org_id;
+				if (!orgId) {
+					throw new Error("Devin API self lookup returned no org_id");
+				}
+			}
 
 			// Extract the prompt from context messages.
 			const prompt = context.messages
@@ -74,7 +91,12 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 					? `Devin Session: ${context.systemPrompt.split("\n", 1)[0].slice(0, 80)}`
 					: "Devin Session";
 
-			const createRes = await fetch(`${normalizedBaseUrl}/sessions`, {
+			const devinUser = process.env.DEVIN_USER;
+			const sessionEndpoint = normalizedBaseUrl.includes("/v3")
+				? `${normalizedBaseUrl}/organizations/${orgId}/sessions`
+				: `${normalizedBaseUrl}/sessions`;
+
+			const createRes = await fetch(sessionEndpoint, {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${apiKey}`,
@@ -83,6 +105,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 				body: JSON.stringify({
 					prompt: context.systemPrompt ? `${context.systemPrompt}\n\n${prompt}` : prompt,
 					title,
+					...(devinUser ? { create_as_user_id: devinUser } : {}),
 				}),
 				signal: options?.signal,
 			});
@@ -114,7 +137,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 						throw new Error("Request was aborted");
 					}
 
-					const pollRes = await fetch(`${normalizedBaseUrl}/sessions/${sessionId}`, {
+					const pollRes = await fetch(`${sessionEndpoint}/${sessionId}`, {
 						headers: { Authorization: `Bearer ${apiKey}` },
 						signal: options?.signal,
 					});
