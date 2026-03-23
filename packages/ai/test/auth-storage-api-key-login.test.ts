@@ -1,11 +1,11 @@
 import { Database } from "bun:sqlite";
-import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 
-vi.mock("../src/utils/oauth/kagi", () => ({
-	loginKagi: vi.fn(),
+mock.module("../src/utils/oauth/kagi", () => ({
+	loginKagi: mock(),
 }));
 
 import { AuthCredentialStore, AuthStorage } from "../src/auth-storage";
@@ -45,7 +45,7 @@ describe("AuthStorage api-key login replacement", () => {
 	});
 
 	afterEach(async () => {
-		vi.restoreAllMocks();
+		mock.restore();
 		store?.close();
 		store = null;
 		authStorage = null;

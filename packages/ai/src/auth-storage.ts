@@ -34,6 +34,8 @@ import { getOAuthApiKey, getOAuthProvider, refreshOAuthToken } from "./utils/oau
 import { loginAlibabaCodingPlan } from "./utils/oauth/alibaba-coding-plan";
 import { loginAnthropic } from "./utils/oauth/anthropic";
 import { loginCerebras } from "./utils/oauth/cerebras";
+import { loginDevin } from "./utils/oauth/devin";
+import { loginWarp } from "./utils/oauth/warp";
 import { loginCloudflareAiGateway } from "./utils/oauth/cloudflare-ai-gateway";
 import { loginCursor } from "./utils/oauth/cursor";
 import { loginGitHubCopilot } from "./utils/oauth/github-copilot";
@@ -821,6 +823,16 @@ export class AuthStorage {
 				if (!apiKey) {
 					return;
 				}
+				await saveApiKeyCredential(apiKey);
+				return;
+			}
+			case "devin": {
+				const apiKey = await loginDevin(ctrl);
+				await saveApiKeyCredential(apiKey);
+				return;
+			}
+			case "warp": {
+				const apiKey = await loginWarp(ctrl);
 				await saveApiKeyCredential(apiKey);
 				return;
 			}

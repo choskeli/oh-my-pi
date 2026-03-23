@@ -3,6 +3,8 @@ import type { BedrockOptions } from "./providers/amazon-bedrock";
 import type { AnthropicOptions } from "./providers/anthropic";
 import type { AzureOpenAIResponsesOptions } from "./providers/azure-openai-responses";
 import type { CursorOptions } from "./providers/cursor";
+import type { DevinOptions } from "./providers/devin";
+import type { WarpOptions } from "./providers/warp";
 import type {
 	DeleteArgs,
 	DeleteResult,
@@ -40,7 +42,9 @@ export type KnownApi =
 	| "google-generative-ai"
 	| "google-gemini-cli"
 	| "google-vertex"
-	| "cursor-agent";
+	| "cursor-agent"
+	| "devin-agent"
+	| "warp-agent";
 export type Api = KnownApi | (string & {});
 export interface ApiOptionsMap {
 	"anthropic-messages": AnthropicOptions;
@@ -53,6 +57,8 @@ export interface ApiOptionsMap {
 	"google-gemini-cli": GoogleGeminiCliOptions;
 	"google-vertex": GoogleVertexOptions;
 	"cursor-agent": CursorOptions;
+	"devin-agent": DevinOptions;
+	"warp-agent": WarpOptions;
 }
 // Compile-time exhaustiveness check - this will fail if ApiOptionsMap doesn't have all KnownApi keys
 type _CheckExhaustive =
@@ -126,6 +132,8 @@ export type KnownProvider =
 	| "vllm"
 	| "xiaomi"
 	| "zenmux"
+	| "devin"
+	| "warp"
 	| "lm-studio";
 export type Provider = KnownProvider | string;
 
