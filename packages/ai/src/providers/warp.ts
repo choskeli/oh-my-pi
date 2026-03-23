@@ -68,10 +68,6 @@ export const streamWarp: StreamFunction<"warp-agent"> = (
 				})
 				.join("\n\n");
 
-			if (context.systemPrompt) {
-				// Warp doesn't have a distinct system prompt field in /run, prepend it
-			}
-
 			// 1. Create the run
 			const runRes = await fetch(`${baseUrl}/agent/run`, {
 				method: "POST",
@@ -183,11 +179,16 @@ export const streamWarp: StreamFunction<"warp-agent"> = (
 
 			output.duration = Date.now() - startTime;
 			if (firstTokenTime) output.ttft = firstTokenTime - startTime;
-			stream.push({
-				type: "done",
-				reason: output.stopReason as "stop" | "length" | "toolUse",
-				message: output,
-			});
+			const stopReason = output.stopReason;
+			if (stopReason === "stop" || stopReason === "length" || stopReason === "toolUse") {
+				stream.push({
+					type: "done",
+					reason: stopReason,
+					message: output,
+				});
+			} else {
+				stream.push({ type: "error", reason: stopReason, error: output });
+			}
 			stream.end();
 		} catch (error) {
 			output.stopReason = options?.signal?.aborted ? "aborted" : "error";

@@ -75,12 +75,15 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 			// However, setting up a full MCP JSON-RPC client over SSE in this file is complex.
 			// For this stub to satisfy the "provider" pattern like Warp:
 
+			// Derive MCP endpoint base from model.baseUrl or fall back to default.
+			const mcpBase = baseUrl.replace(/\/+$/, "");
+
 			// First, initialize SSE connection to MCP server
-			const initSseRes = await fetch(`https://mcp.devin.ai/sse`, {
+			const initSseRes = await fetch(`${mcpBase}/sse`, {
 				method: "GET",
 				headers: {
 					Authorization: `Bearer ${apiKey}`,
-					Accept: "text/event-stream"
+					Accept: "text/event-stream",
 				},
 				signal: options?.signal,
 			});
@@ -90,8 +93,11 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 				throw new Error(`Devin MCP SSE init failed (${initSseRes.status}): ${text}`);
 			}
 
-			// We need the POST endpoint from the SSE 'endpoint' event. Let's just assume we POST to /mcp for JSON-RPC.
-			const jsonRpcUrl = `https://mcp.devin.ai/mcp`;
+			// Consume and close the SSE init response body to avoid leaking the connection.
+			await initSseRes.body?.cancel();
+
+			// Derive the JSON-RPC POST endpoint from the same base.
+			const jsonRpcUrl = `${mcpBase}/mcp`;
 
 			const callTool = async (name: string, args: any) => {
 				const req = {
@@ -112,9 +118,14 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 				return res.json();
 			};
 
+			const sessionTitle =
+				context.systemPrompt && context.systemPrompt.trim().length > 0
+					? `Devin Session: ${context.systemPrompt.split("\n", 1)[0].slice(0, 80)}`
+					: "Devin Session";
+
 			const createRes = await callTool("devin_session_create", {
 				prompt: context.systemPrompt ? `${context.systemPrompt}\n\n${prompt}` : prompt,
-				title: "Warp/Oz Agent Run"
+				title: sessionTitle,
 			}) as any;
 
 			if (createRes.error) {
@@ -187,11 +198,16 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 
 			output.duration = Date.now() - startTime;
 			if (firstTokenTime) output.ttft = firstTokenTime - startTime;
-			stream.push({
-				type: "done",
-				reason: output.stopReason as "stop" | "length" | "toolUse",
-				message: output,
-			});
+			const stopReason = output.stopReason;
+			if (stopReason === "stop" || stopReason === "length" || stopReason === "toolUse") {
+				stream.push({
+					type: "done",
+					reason: stopReason,
+					message: output,
+				});
+			} else {
+				stream.push({ type: "error", reason: stopReason, error: output });
+			}
 			stream.end();
 		} catch (error) {
 			output.stopReason = options?.signal?.aborted ? "aborted" : "error";
