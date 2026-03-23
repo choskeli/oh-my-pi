@@ -40,6 +40,8 @@ import {
 	zenmuxModelManagerOptions,
 } from "./openai-compat";
 import { cursorModelManagerOptions } from "./special";
+import { devinModelManagerOptions } from "./devin";
+import { warpModelManagerOptions } from "./warp";
 
 /** Catalog discovery configuration for providers that support endpoint-based model listing. */
 export interface CatalogDiscoveryConfig {
@@ -265,6 +267,18 @@ export const PROVIDER_DESCRIPTORS: readonly ProviderDescriptor[] = [
 		config => cursorModelManagerOptions(config),
 		catalog("Cursor", ["CURSOR_API_KEY"], { oauthProvider: "cursor" }),
 	),
+	catalogDescriptor(
+		"devin",
+		"devin-agent",
+		config => devinModelManagerOptions(config),
+		catalog("Devin", ["DEVIN_API_KEY"], { oauthProvider: "devin" }),
+	),
+	catalogDescriptor(
+		"warp",
+		"warp-agent",
+		config => warpModelManagerOptions(config),
+		catalog("Warp Oz", ["WARP_API_KEY"], { oauthProvider: "warp" }),
+	),
 ] as const;
 
 /** Default model IDs for all known providers, built from descriptors + special providers. */
@@ -282,4 +296,6 @@ export const DEFAULT_MODEL_PER_PROVIDER: Record<KnownProvider, string> = {
 	"openai-codex": "gpt-5.4",
 	zai: "glm-4.6",
 	"gitlab-duo": "duo-chat-sonnet-4-5",
+	devin: "devin-agent",
+	warp: "warp-agent",
 } as Record<KnownProvider, string>;

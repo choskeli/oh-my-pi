@@ -56,6 +56,9 @@ export {
 	pollCursorAuth,
 	refreshCursorToken,
 } from "./cursor";
+// Devin
+export { loginDevin } from "./devin";
+
 // GitHub Copilot
 export {
 	getGitHubCopilotBaseUrl,
@@ -113,6 +116,9 @@ export { loginTogether } from "./together";
 export * from "./types";
 // Venice (API key)
 export { loginVenice } from "./venice";
+// Warp
+export { loginWarp } from "./warp";
+
 // vLLM (API key)
 export { loginVllm } from "./vllm";
 // Xiaomi MiMo (API key)
@@ -231,6 +237,16 @@ const builtInOAuthProviders: OAuthProviderInfo[] = [
 	{
 		id: "opencode-go",
 		name: "OpenCode Go",
+		available: true,
+	},
+	{
+		id: "devin",
+		name: "Devin",
+		available: true,
+	},
+	{
+		id: "warp",
+		name: "Warp",
 		available: true,
 	},
 	{
@@ -393,6 +409,8 @@ export async function refreshOAuthToken(
 		case "ollama":
 		case "xiaomi":
 		case "zai":
+		case "devin":
+		case "warp":
 		case "qianfan":
 		case "venice":
 		case "minimax-code":

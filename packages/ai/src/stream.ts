@@ -13,6 +13,8 @@ import { type BedrockOptions, streamBedrock } from "./providers/amazon-bedrock";
 import { type AnthropicOptions, streamAnthropic } from "./providers/anthropic";
 import { streamAzureOpenAIResponses } from "./providers/azure-openai-responses";
 import { type CursorOptions, streamCursor } from "./providers/cursor";
+import { type DevinOptions, streamDevin } from "./providers/devin";
+import { type WarpOptions, streamWarp } from "./providers/warp";
 import { isGitLabDuoModel, streamGitLabDuo } from "./providers/gitlab-duo";
 import { type GoogleOptions, streamGoogle } from "./providers/google";
 import { type GoogleGeminiCliOptions, streamGoogleGeminiCli } from "./providers/google-gemini-cli";
@@ -143,6 +145,8 @@ const serviceProviderMap: Record<string, KeyResolver> = {
 	venice: "VENICE_API_KEY",
 	vllm: "VLLM_API_KEY",
 	xiaomi: "XIAOMI_API_KEY",
+	devin: "DEVIN_API_KEY",
+	warp: "WARP_API_KEY",
 };
 
 /**
@@ -224,6 +228,12 @@ export function stream<TApi extends Api>(
 
 		case "cursor-agent":
 			return streamCursor(model as Model<"cursor-agent">, context, providerOptions as CursorOptions);
+
+		case "devin-agent":
+			return streamDevin(model as Model<"devin-agent">, context, providerOptions as DevinOptions);
+
+		case "warp-agent":
+			return streamWarp(model as Model<"warp-agent">, context, providerOptions as WarpOptions);
 
 		default:
 			throw new Error(`Unhandled API: ${api}`);
@@ -690,6 +700,12 @@ function mapOptionsForApi<TApi extends Api>(
 				onToolResult,
 			});
 		}
+
+		case "devin-agent":
+		case "warp-agent":
+			return castApi<typeof model.api>({
+				...base,
+			});
 
 		default:
 			throw new Error(`Unhandled API in mapOptionsForApi: ${model.api}`);
