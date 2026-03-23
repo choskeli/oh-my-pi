@@ -49,6 +49,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 			}
 
 			const baseUrl = model.baseUrl || "https://api.devin.ai/v1";
+			const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
 
 			// Extract the prompt from context messages.
 			const prompt = context.messages
@@ -73,7 +74,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 					? `Devin Session: ${context.systemPrompt.split("\n", 1)[0].slice(0, 80)}`
 					: "Devin Session";
 
-			const createRes = await fetch(`${baseUrl.replace(/\/+$/, "")}/sessions`, {
+			const createRes = await fetch(`${normalizedBaseUrl}/sessions`, {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${apiKey}`,
@@ -113,7 +114,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 						throw new Error("Request was aborted");
 					}
 
-					const pollRes = await fetch(`${baseUrl.replace(/\/+$/, "")}/sessions/${sessionId}`, {
+					const pollRes = await fetch(`${normalizedBaseUrl}/sessions/${sessionId}`, {
 						headers: { Authorization: `Bearer ${apiKey}` },
 						signal: options?.signal,
 					});
@@ -152,9 +153,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 					}
 				}
 			} else {
-				const txt = "Successfully requested Devin session, but could not parse session ID.";
-				currentTextBlock.text += txt;
-				stream.push({ type: "text_delta", contentIndex: 0, delta: txt, partial: output });
+				throw new Error("Successfully requested Devin session, but could not parse session ID.");
 			}
 
 			stream.push({
@@ -164,7 +163,7 @@ export const streamDevin: StreamFunction<"devin-agent"> = (
 				partial: output,
 			});
 
-			if (model.cost) calculateCost(model, output.usage);
+			calculateCost(model, output.usage);
 
 			output.duration = Date.now() - startTime;
 			if (firstTokenTime) output.ttft = firstTokenTime - startTime;

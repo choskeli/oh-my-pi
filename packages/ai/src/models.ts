@@ -36,6 +36,14 @@ export function getBundledModels(provider: GeneratedProvider): Model<Api>[] {
 }
 
 export function calculateCost<TApi extends Api>(model: Model<TApi>, usage: Usage): Usage["cost"] {
+	if (!model.cost) {
+		usage.cost.input = 0;
+		usage.cost.output = 0;
+		usage.cost.cacheRead = 0;
+		usage.cost.cacheWrite = 0;
+		usage.cost.total = 0;
+		return usage.cost;
+	}
 	usage.cost.input = (model.cost.input / 1000000) * usage.input;
 	usage.cost.output = (model.cost.output / 1000000) * usage.output;
 	usage.cost.cacheRead = (model.cost.cacheRead / 1000000) * usage.cacheRead;

@@ -175,7 +175,7 @@ export const streamWarp: StreamFunction<"warp-agent"> = (
 				partial: output,
 			});
 
-			if (model.cost) calculateCost(model, output.usage);
+			calculateCost(model, output.usage);
 
 			output.duration = Date.now() - startTime;
 			if (firstTokenTime) output.ttft = firstTokenTime - startTime;
