@@ -145,6 +145,8 @@ const serviceProviderMap: Record<string, KeyResolver> = {
 	venice: "VENICE_API_KEY",
 	vllm: "VLLM_API_KEY",
 	xiaomi: "XIAOMI_API_KEY",
+	devin: "DEVIN_API_KEY",
+	warp: "WARP_API_KEY",
 };
 
 /**
