@@ -42,7 +42,7 @@ describe("devin provider support", () => {
 		expect(models).toHaveLength(1);
 		expect(models?.[0]?.id).toBe("devin-agent");
 		expect(models?.[0]?.api).toBe("devin-agent");
-		expect(models?.[0]?.baseUrl).toBe("https://mcp.devin.ai/mcp");
+		expect(models?.[0]?.baseUrl).toBe("https://api.devin.ai/v3");
 	});
 
 	test("respects custom baseUrl", async () => {

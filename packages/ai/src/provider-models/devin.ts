@@ -6,7 +6,7 @@ export interface DevinModelManagerConfig {
 }
 
 export function devinModelManagerOptions(config?: DevinModelManagerConfig): ModelManagerOptions<"devin-agent"> {
-	const baseUrl = config?.baseUrl ?? "https://mcp.devin.ai/mcp";
+	const baseUrl = config?.baseUrl ?? "https://api.devin.ai/v3";
 	return {
 		providerId: "devin",
 		fetchDynamicModels: async () => [
